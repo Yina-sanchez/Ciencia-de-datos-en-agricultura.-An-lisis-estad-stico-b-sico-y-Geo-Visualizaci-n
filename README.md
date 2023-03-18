@@ -36,10 +36,11 @@ El siguiente paso es descargar el archivo de datos del repositorio por *[read_cs
 df = pd.read_csv('https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/data-science-in-agriculture-basic-statistical-analysis-and-geo-visualisation/estat_aact_eaa01_defaultview_en.csv')
 df
 ````
-# Data preparación
+Data preparación
 ````
 df.columns
-
 ````
-
+Index(['DATAFLOW', 'LAST UPDATE', 'freq', 'itm_newa', 'indic_ag', 'unit',
+       'geo', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_FLAG'],
+      dtype='object')
 
