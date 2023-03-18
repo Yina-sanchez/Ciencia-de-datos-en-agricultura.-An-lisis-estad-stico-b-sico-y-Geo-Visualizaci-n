@@ -39,8 +39,10 @@ df
 Data preparación
 ````
 df.columns
-````
+
 Index(['DATAFLOW', 'LAST UPDATE', 'freq', 'itm_newa', 'indic_ag', 'unit',
        'geo', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_FLAG'],
       dtype='object')
+````
+
 
