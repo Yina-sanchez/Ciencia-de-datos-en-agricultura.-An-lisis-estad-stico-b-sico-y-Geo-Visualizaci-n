@@ -44,5 +44,70 @@ Index(['DATAFLOW', 'LAST UPDATE', 'freq', 'itm_newa', 'indic_ag', 'unit',
        'geo', 'TIME_PERIOD', 'OBS_VALUE', 'OBS_FLAG'],
       dtype='object')
 ````
+Podemos ver que la columna 'geo' tiene un tipo de objeto. Pero esta columna contiene códigos de países.
+Por lo tanto, es necesario cambiar el tipo de estos datos a categóricos.
+````
+df.loc[:, 'geo'] = df['geo'].astype('category')
+df.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 398 entries, 0 to 397
+Data columns (total 3 columns):
+ #   Column       Non-Null Count  Dtype   
+---  ------       --------------  -----   
+ 0   geo          398 non-null    category
+ 1   TIME_PERIOD  398 non-null    int64   
+ 2   OBS_VALUE    398 non-null    float64 
+dtypes: category(1), float64(1), int64(1
+````
+obtener la lista de países. 
+````
+df['geo'].unique()
+['AT', 'BE', 'BG', 'CH', 'CY', ..., 'RO', 'SE', 'SI', 'SK', 'UK']
+Length: 40
+Categories (40, object): ['AT', 'BE', 'BG', 'CH', ..., 'SE', 'SI', 'SK', 'UK']
+````
+Cabe señalar que existen algunos códigos de países no estándar para el Reino Unido y Grecia.
+Deberíamos cambiar los valores: UK a GB para el Reino Unido y EL a GR para Grecia.
+Para hacer esto, debemos agregar nuevos nombres de categoría
+````
+df['geo'] = df['geo'].cat.add_categories(["GB", "GR"])
+pd.options.mode.chained_assignment = None  # swich of the warnings
+mask = df['geo'] == 'UK' # Binary mask
+df.loc[mask, 'geo'] = "GB" # Change the values for mask
+df
+
+	geo	TIME_PERIOD	OBS_VALUE
+0	AT	2011	       906.72
+1	AT	2012	      1029.21
+2	AT	2013	      717.58
+3	AT	2014	      769.41
+4	AT	2015	      728.38
+````
+````
+mask = df['geo'] == 'EL'
+df.loc[mask, 'geo'] = "GR"
+df
+````
+Después de eso, agregue una nueva columna que contenga los nombres completos de los países. Para hacer esto
+Para agregar una columna con los nombres completos de los países, debemos crear una función que obtenga un código de país y devuelva un nombre completo.
+````
+import pycountry
+list_alpha_2 = [i.alpha_2 for i in list(pycountry.countries)]  # create a list of country codes
+print("Country codes", list_alpha_2)
+
+def country_flag(df):
+    '''
+    df: Series
+    return: Full name of country or "Invalide code"
+    '''
+    if (df['geo'] in list_alpha_2):
+        return pycountry.countries.get(alpha_2=df['geo']).name
+    else:
+        print(df['geo'])
+        return 'Invalid Code'
+
+df['country_name']=df.apply(country_flag, axis = 1)
+df
+````
 
 
