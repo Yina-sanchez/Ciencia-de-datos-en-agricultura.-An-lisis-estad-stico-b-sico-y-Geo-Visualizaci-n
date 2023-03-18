@@ -18,7 +18,7 @@ Todos los datos se obtienen de Eurostat DataBase (https://ec.europa.eu/eurostat/
 
 Los datos estadísticos se obtuvieron de https://ec.europa.eu/eurostat/databrowser/view/aact_eaa01/default/table?lang=en. Eurostat tiene una política de fomento de la libre reutilización de sus datos, tanto para fines comerciales como no comerciales.
 
-import pandas as pd
+> import pandas as pd <
 import matplotlib.pyplot as plt
 import numpy as np
 import openpyxl 
