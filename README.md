@@ -143,7 +143,7 @@ Puede ver que esta información no es adecuada porque los datos no están agrupa
 pt_country = pd.pivot_table(df, values= 'OBS_VALUE', index= ['TIME_PERIOD'], columns=['country_name'], aggfunc='sum', margins=True)
 pt_country
 _____
-country_name	Austria	Belgium	Bulgaria Croatia
+country_name	Austria	Belgium	Bulgaria ...
 TIME_PERIOD																					
 2011	      906.72	465.34	1196.06
 2012	     1029.21	606.09	1311.49
@@ -165,18 +165,118 @@ Construyamos un gráfico para la última fila ('All') excepto los últimos valor
 pt.iloc[-1][:-1].plot()
 ````
 ![image](https://user-images.githubusercontent.com/109825689/226137554-5ef889b3-ba0d-473c-b6be-1681bf1237e3.png)
+Construyamos un gráfico de barras para los valores de resumen de cada país (la última columna 'All' excepto la última fila).
+````
+pt['All'][:-1].plot.bar(x='country_name', y='val', rot=90)
+````
+![image](https://user-images.githubusercontent.com/109825689/226137922-f51ec5c8-9566-4002-8df1-7a4576ba9dd4.png)
+Comparemos las cuentas económicas de Alemania y Francia en un gráfico de barras.
+````
+import numpy as np
+import matplotlib.pyplot as plt
 
+x = np.arange(len(pt.columns)-1)  # the label locations
+width = 0.35  # the width of the bars
 
+fig, ax = plt.subplots() # Create subplots
+rects1 = ax.bar(x - width/2, pt.loc['Germany'][:-1], width, label='Germany') # parameters of bars
+rects2 = ax.bar(x + width/2, pt.loc['France'][:-1], width, label='France')
 
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('OBS_VALUE')
+ax.set_xlabel('Years')
+ax.set_xticks(x)
+plt.xticks(rotation = 90)
+ax.set_xticklabels(pt.columns[:-1])
+ax.legend()
 
+fig.tight_layout()
 
+plt.show()
+````
+![image](https://user-images.githubusercontent.com/109825689/226137998-b5ff2fe2-da6f-43ce-890e-b4a87bf3a8b0.png)
+También podemos construir algunas parcelas específicas usando la biblioteca SeaBorn.
+````
+import seaborn as sns
+d = pd.DataFrame(pt.loc['Sweden'][:-1])
+print(d)
+sns.regplot(x=d.index.astype(int), y="Sweden", data=d,)
+___
+             Sweden
+TIME_PERIOD        
+2011         791.98
+2012         971.59
+2013         757.95
+````
+![image](https://user-images.githubusercontent.com/109825689/226138071-a8085539-4105-4df4-92b5-5ff374019655.png)
+## Línea de tendencia
+Hagamos un pronóstico de la dinámica usando una línea de tendencia lineal para Suecia.
+Para construir un modelo lineal, es necesario crear el propio modelo lineal, ajustarlo, probarlo y hacer una predicción.
+Para hacer esto, use [sklearn.linear_model.LinearRegression()]
+````
+from sklearn.linear_model import LinearRegression
+model = LinearRegression()
+X = np.reshape(d.index, (-1, 1)) # transform X values
+y = np.reshape(d.values, (-1, 1)) # transform Y values
+model.fit(X, y)
+````
+Cuando el modelo está ajustado, podemos construir nuestro pronóstico. Deberíamos agregar nuevos valores para X y calcular Y.
+````
+X_pred= np.append(X, [2021, 2022, 2023])
+X_pred = np.reshape(X_pred, (-1, 1))
+# calculate trend
+trend = model.predict(X_pred)
 
+plt.plot(X_pred, trend, "-", X, y, ".")
+````
+![image](https://user-images.githubusercontent.com/109825689/226138518-5f9c6f4a-7ab3-492c-acee-c430460fdd2e.png)
+## Interactive maps
+Es conveniente desplegar los cambios de la contabilidad económica en un mapa para visualizarlo. Hay varias bibliotecas para esto. Es conveniente usar la biblioteca. [plotly.express]
+````
+import plotly.express as px
+df
+````
+````
+import json
+!wget european-union-countries.geojson "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/data-science-in-agriculture-basic-statistical-analysis-and-geo-visualisation/european-union-countries.geojson"
+````
+````
+with open("european-union-countries.geojson", encoding="utf8") as json_file:
+    EU_map = json.load(json_file)
+````
+El siguiente paso es construir un mapa interactivo usando [plotly.express.choropleth()]
+````
+fig = px.choropleth(
+    df,
+    geojson=EU_map,
+    locations='country_name',
+    featureidkey='properties.name',    
+    color= 'OBS_VALUE', 
+    scope='europe',
+    hover_name= 'country_name',
+    hover_data= ['country_name', 'OBS_VALUE'],
+    animation_frame= 'TIME_PERIOD', 
+    color_continuous_scale=px.colors.diverging.RdYlGn[::-1]
+)
+````
+Entonces deberíamos cambiar algunas características del mapa. Por ejemplo: showcountries, showcoastline, showland y fitbouns en función: [plotly.express.update_geos()], [plotly.express.update_layout]
+````
+fig.update_geos(showcountries=False, showcoastlines=False, showland=True, fitbounds=False)
 
+fig.update_layout(
+    title_text ="Agriculture Economic accounts",
+    title_x = 0.5,
+    geo= dict(
+        showframe= False,
+        showcoastlines= False,
+        projection_type = 'equirectangular'
+    ),
+    margin={"r":0,"t":0,"l":0,"b":0}
+)
+````
+![newplot](https://user-images.githubusercontent.com/109825689/226139118-b82dc1f3-075b-45c8-ae34-d46172af8426.png)
+## Conclusions
+Como se evidencia en la práctica, los datos obtenidos en experimentos de campo reales no son aptos para el procesamiento estadístico directo. Por lo tanto, en este laboratorio aprendimos los métodos básicos de descarga y preparación de datos preliminares.
+A diferencia de los enfoques clásicos bien conocidos para el análisis de datos estadísticos, Python contiene muchas bibliotecas poderosas que le permiten manipular datos de manera fácil y rápida. Por lo tanto, hemos aprendido los métodos básicos para automatizar una biblioteca como Pandas para el análisis de datos estadísticos. También aprendimos los métodos básicos para visualizar los datos obtenidos con la biblioteca SeaBorn, que también contiene medios efectivos de análisis visual de datos. Al final del trabajo de laboratorio, mostramos el DataSet en un mapa interactivo dinámico en formato * .html.
 
-
-
-
-
-
-
-
+ Copyright &copy; 2020 IBM Corporation. This notebook and its source code are released under the terms of the [MIT License](https://cognitiveclass.ai/mit-license/?utm_medium=Exinfluencer&utm_source=Exinfluencer&utm_content=000026UJ&utm_term=10006555&utm_id=NA-SkillsNetwork-Channel-SkillsNetworkGuidedProjectsdatascienceinagriculturebasicstatisticalanalysisandgeovisualisation467-2022-01-01).
