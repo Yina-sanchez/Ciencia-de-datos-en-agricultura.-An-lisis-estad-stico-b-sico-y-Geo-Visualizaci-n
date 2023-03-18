@@ -36,7 +36,7 @@ El siguiente paso es descargar el archivo de datos del repositorio por *[read_cs
 df = pd.read_csv('https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/data-science-in-agriculture-basic-statistical-analysis-and-geo-visualisation/estat_aact_eaa01_defaultview_en.csv')
 df
 ````
-Data preparación
+# Data preparación
 ````
 df.columns
 
@@ -109,5 +109,74 @@ def country_flag(df):
 df['country_name']=df.apply(country_flag, axis = 1)
 df
 ````
+Como puede ver, se agregó la columna con los nombres completos de los países y este conjunto de datos contiene una gran cantidad de datos con un código no válido. Eliminemos estos datos usando una máscara binaria.
+````
+mask = df['country_name'] != 'Invalid Code'
+df = df[mask]
+df
+
+	geo	TIME_PERIOD	OBS_VALUE   country_name
+0	AT	2011	         906.72	    Austria
+1	AT	2012	         1029.2     Austria
+2	AT	2013	         717.58	    Austria
+````
+# Análisis estadístico
+````
+df.info()
+df.describe()
+df.describe(include=['category'])
+````
+Como puede ver, la información estadística consiste en el número de valores únicos, el valor de la categoría más popular y el número de sus valores.
+La información detallada para una columna específica se puede obtener de la siguiente manera
+````
+df['country_name'].value_counts()
+
+Output exceeds the size limit. Open the full output data in a text editor
+Austria           10
+Belgium           10
+Slovakia          10
+Slovenia          10
+Sweden            10
+````
+Puede ver que esta información no es adecuada porque los datos no están agrupados. Para obtener estadísticas adecuadas, este conjunto de datos debe transformarse utilizando una tabla dinámica  [pivot_table()]
+````
+pt_country = pd.pivot_table(df, values= 'OBS_VALUE', index= ['TIME_PERIOD'], columns=['country_name'], aggfunc='sum', margins=True)
+pt_country
+_____
+country_name	Austria	Belgium	Bulgaria Croatia
+TIME_PERIOD																					
+2011	      906.72	465.34	1196.06
+2012	     1029.21	606.09	1311.49
+2013	      717.58	513.17	1258.57
+````
+Después de eso, podemos calcular la descripción estadística para cada país.
+````
+pt_country.describe()
+````
+Podemos obtener estadísticas por años:
+````
+pt = pd.pivot_table(df, values= 'OBS_VALUE', index= ['country_name'], columns=['TIME_PERIOD'], aggfunc='sum', margins=True)
+pt
+pt.describe()
+````
+## Data visualization
+Construyamos un gráfico para la última fila ('All') excepto los últimos valores para la columna ('All'). Pandas hereda la función de Matplotlib para el trazado.
+````
+pt.iloc[-1][:-1].plot()
+````
+![image](https://user-images.githubusercontent.com/109825689/226137554-5ef889b3-ba0d-473c-b6be-1681bf1237e3.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
