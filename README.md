@@ -31,3 +31,15 @@ plt.rcParams["figure.figsize"] = (8, 6)
 import warnings
 warnings.filterwarnings('ignore')'
 ````
+El siguiente paso es descargar el archivo de datos del repositorio por *[read_csv()]
+````
+df = pd.read_csv('https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/data-science-in-agriculture-basic-statistical-analysis-and-geo-visualisation/estat_aact_eaa01_defaultview_en.csv')
+df
+````
+# Data preparación
+````
+df.columns
+
+````
+
+
